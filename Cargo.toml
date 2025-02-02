@@ -1,0 +1,14 @@
+[package]
+name = "klistra"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+aws-sdk-s3 = "1.72.0"
+config = "0.15.7"
+pulldown-cmark = "0.12.2"
+clap = { version = "4.5.27", features = ["derive"] }
+serde = { version = "1.0.217", features = ["derive"] }
+tokio = { version = "1.43.0", features = ["full"] }
+uuid = { version = "1.12.1", features = ["v4"] }
+chrono = "0.4.39"
