@@ -4,7 +4,7 @@ use aws_sdk_s3::config::{
 use aws_sdk_s3::primitives::ByteStream;
 use aws_sdk_s3::Client;
 use clap::Parser;
-use pulldown_cmark::{html::push_html, Parser as MarkdownParser};
+use pulldown_cmark::{html::push_html, Options, Parser as MarkdownParser};
 use serde::Deserialize;
 use std::{error::Error, path::Path, path::PathBuf};
 use tokio::fs;
@@ -49,7 +49,10 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
     let markdown_content = fs::read_to_string(&cli.file).await?;
 
-    let parser = MarkdownParser::new(&markdown_content);
+    let mut options = Options::empty();
+    options.insert(Options::ENABLE_TABLES);
+
+    let parser = MarkdownParser::new_ext(&markdown_content, options);
     let mut html_output = String::new();
     push_html(&mut html_output, parser);
 
@@ -161,6 +164,22 @@ async fn main() -> Result<(), Box<dyn Error>> {
             color: var(--text-secondary);
             font-size: 1.25rem;
             margin-bottom: 2rem;
+        }}
+
+        table {{
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 1.5rem;
+        }}
+
+        th, td {{
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 0.75rem;
+            text-align: left;
+        }}
+
+        thead {{
+            background-color: rgba(255, 255, 255, 0.1);
         }}
     </style>
 </head>
