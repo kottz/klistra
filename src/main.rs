@@ -9,6 +9,7 @@ use serde::Deserialize;
 use std::{error::Error, path::Path, path::PathBuf};
 use tokio::fs;
 use uuid::Uuid;
+use dirs;
 
 #[derive(Debug, Deserialize)]
 struct S3Config {
@@ -36,14 +37,45 @@ struct Cli {
     /// If this flag is provided, the file will NOT be uploaded.
     #[arg(short = 'f', long = "file-output", alias = "fo")]
     file_output: bool,
+
+    /// Optional path to the config file. If not provided, will look in $HOME/.config/klistra/config.toml
+    #[arg(short = 'c', long = "config")]
+    config_path: Option<PathBuf>,
+}
+
+fn get_config_path(cli_config_path: Option<PathBuf>) -> Option<PathBuf> {
+    // If config path is provided via CLI, use that
+    if let Some(path) = cli_config_path {
+        return Some(path);
+    }
+
+    // Otherwise, look in the default location: $HOME/.config/klistra/config.toml
+    dirs::home_dir().map(|home| home.join(".config").join("klistra").join("config.toml"))
 }
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
     let cli = Cli::parse();
 
+    // Get the config path
+    let config_path = get_config_path(cli.config_path)
+        .ok_or_else(|| "Could not determine config file path")?;
+
+    // Check if the config file exists
+    if !config_path.exists() {
+        return Err(format!(
+            "Config file not found at {}",
+            config_path.display()
+        )
+        .into());
+    }
+
     let settings = config::Config::builder()
-        .add_source(config::File::with_name("config").required(true))
+        .add_source(config::File::with_name(
+            config_path
+                .to_str()
+                .ok_or_else(|| "Invalid config path")?
+        ))
         .build()?;
     let app_config: AppConfig = settings.try_deserialize()?;
 

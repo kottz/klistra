@@ -12,3 +12,4 @@ serde = { version = "1.0.217", features = ["derive"] }
 tokio = { version = "1.43.0", features = ["full"] }
 uuid = { version = "1.12.1", features = ["v4"] }
 chrono = "0.4.39"
+dirs = "6.0.0"
